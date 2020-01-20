@@ -40,6 +40,7 @@ class DialController extends FlareController {
 
   @override
   bool advance(FlutterActorArtboard artboard, double elapsed) {
+    //taking each animation in the buffer one by one and applying it, after they are individually removed from the buffer.
     int len = _baseAnimations.length - 1;
     for (int i = len; i >= 0; i--) {
       FlareAnimationLayer layer = _baseAnimations[i];
@@ -57,9 +58,10 @@ class DialController extends FlareController {
   void initialize(FlutterActorArtboard artboard) {
     _artboard = artboard;
     print("Dial Controller Has Been Initialized");
-    initializationCallback();
+    initializationCallback(); //once this controller has finished initializing
   }
 
+  /*Setting the Color theme for the color, dark or light */
   void setColorTheme(ColorTheme theme) {
     if (theme != _currentColorTheme) {
       if (theme == ColorTheme.dark) {
@@ -72,6 +74,7 @@ class DialController extends FlareController {
     _currentColorTheme = theme;
   }
 
+  /*Adjusting the background color, depending on the time*/
   void adjustBackground(String hour, bool is24Hr, String amPm) {
     int hours = int.parse(hour);
     if (is24Hr) {
@@ -123,6 +126,7 @@ class DialController extends FlareController {
     }
   }
 
+  /*Animating the AM PM dial*/
   void adjustAmPmDial(String val) {
     if (val == "PM") {
       if (_isAm) {
@@ -137,6 +141,7 @@ class DialController extends FlareController {
     }
   }
 
+  /*Showing and hiding the AM PM dial*/
   void showAmPmDial(bool val) {
     if (!val) {
       if (_isAmPmDialVisible) {
@@ -151,6 +156,7 @@ class DialController extends FlareController {
     }
   }
 
+  /*Setting the hours dials, the first and second dials from the left */
   void setHours(String hour, bool is24Hr) {
     int firstVal = int.parse(hour.substring(0, 1));
     int secondVal = int.parse(hour.substring(1));
@@ -214,6 +220,7 @@ class DialController extends FlareController {
     }
   }
 
+  /*Setting the minutes dials, the last two dials from the left of the clockface*/
   void setMinute(String minute) {
     if (_artboard != null) {
       int firstVal = int.parse(minute.substring(0, 1));
@@ -290,13 +297,15 @@ class DialController extends FlareController {
     if (_artboard != null) {
       ActorAnimation animation = _artboard.getAnimation(animationName);
       if (animation == null) {
+        // if the animation cannot be found on the artboard
         throw AnimationNotFoundException("Animation Not Found in Artboard!");
       }
-      print(animation.name);
-      _baseAnimations.add(FlareAnimationLayer()
-        ..name = animationName
-        ..animation = animation);
+      _baseAnimations
+          .add(FlareAnimationLayer() //adding the animations to buffer
+            ..name = animationName
+            ..animation = animation);
     } else {
+      //if the artboard has not yet been found, this exception will be thrown.
       throw ArtboardNotInitializedException(
           "Cannot add to animation buffer, artboard not found");
     }

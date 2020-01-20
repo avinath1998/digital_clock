@@ -4,6 +4,7 @@
 import 'dart:async';
 
 import 'package:flare_flutter/flare_actor.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_clock_helper/model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,27 +13,6 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import 'controllers/dial_controller.dart';
 
-enum _Element {
-  background,
-  text,
-  shadow,
-}
-
-final _lightTheme = {
-  _Element.background: Color(0xFF81B3FE),
-  _Element.text: Colors.white,
-  _Element.shadow: Colors.black,
-};
-
-final _darkTheme = {
-  _Element.background: Colors.black,
-  _Element.text: Colors.white,
-  _Element.shadow: Color(0xFF174EA6),
-};
-
-/// A basic digital clock.
-///
-/// You can do better than this!
 class DigitalClock extends StatefulWidget {
   const DigitalClock(this.model);
 
@@ -57,11 +37,16 @@ class _DigitalClockState extends State<DigitalClock> {
     super.initState();
     widget.model.addListener(_updateModel);
     _dialController = DialController(() {
+      //this function will execute once the DialController has been initialised
       _updateModel();
       setState(() {
         _hasLoaded = true;
       });
     });
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
   }
 
   @override
@@ -102,10 +87,10 @@ class _DigitalClockState extends State<DigitalClock> {
     });
   }
 
+  /*Updaing the the time, runs every minute. */
   void _updateTime() {
     setState(() {
       _dateTime = DateTime.now();
-      //_dateTime = DateTime.fromMillisecondsSinceEpoch(1579550946000);
       String hours;
       if (widget.model.is24HourFormat) {
         hours = DateFormat('HH').format(_dateTime);
@@ -114,6 +99,7 @@ class _DigitalClockState extends State<DigitalClock> {
       }
       String minutes = DateFormat('mm').format(_dateTime);
       try {
+        //updating the clocks features
         _dialController.setMinute(minutes);
         _dialController.setHours(hours, widget.model.is24HourFormat);
         _dialController.adjustBackground(hours, widget.model.is24HourFormat,
@@ -123,9 +109,11 @@ class _DigitalClockState extends State<DigitalClock> {
         }
         print("Clock has been updated successfully: ${_dateTime.toString()}");
       } catch (e) {
+        //if the artboard has not been found or animation is not found, an exception will be caught here.
         print("Failed to update clock, attempting again in 1 second");
-        _timer?.cancel();
-        Timer(Duration(seconds: 1), _updateTime);
+        _timer?.cancel(); //cancelling the timer that runs every minute
+        Timer(Duration(seconds: 1),
+            _updateTime); //executing this method after a second
         return;
       }
       _timer = Timer(
@@ -137,6 +125,7 @@ class _DigitalClockState extends State<DigitalClock> {
     });
   }
 
+  /*Updating the weather icon on the clock face.  */
   void _updateWeatherIcon(WeatherCondition weatherCondition) {
     switch (weatherCondition) {
       case WeatherCondition.windy:
